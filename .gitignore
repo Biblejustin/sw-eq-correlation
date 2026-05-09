@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+venv/
+.venv/
+*.sqlite
+*.sqlite-journal
+.DS_Store
+.ipynb_checkpoints/
