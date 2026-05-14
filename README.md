@@ -11,8 +11,9 @@ Does space weather correlate with earthquakes? A statistical test using the long
 - Lag correlations −3y to +3y on detrended series: nothing.
 - Daily-level: M ≥ 7 events fall inside ±0 to ±30 day windows around G3+ storms at 0.84×–1.04× of the chance expectation, none significant.
 - Sun-side test with explicit Sun → Earth propagation lags (light, +1d, +2..+5d CME transit, +1..+14d): all in 0.72×–1.03× of chance, none significant.
+- **11-year cycle: phase fold, high/low-half, and ascending/descending tests all flat. Periodogram of M ≥ 7 has no 11y peak, while G3+ days and sunspot number both do. Coherence with sunspot at 9–13y is well below the null bound.**
 
-If solar activity triggered earthquakes at a level large enough to matter at the global scale, the closely-spaced lag windows would be the place to find it. They're flat.
+If solar activity triggered earthquakes at a level large enough to matter at the global scale, the closely-spaced lag windows would be the place to find it. They're flat. The 11-year cycle is loud and clear in the space-weather indices and silent in seismicity.
 
 ## What this tests
 
@@ -111,6 +112,51 @@ Top-1.82% thresholds (matching the G3+ base rate exactly): SSN ≥ 279, F10.7 �
 
 Every plausible propagation regime is covered, and the answer is the same as before: ratios in 0.72×–1.03× of chance, none significant. The high-SSN windows actually trend slightly *below* chance, which is the wrong direction for the trigger hypothesis.
 
+## 11-year solar cycle
+
+The lag tests above can only catch coupling on timescales of days to a few years. A different question: does the 11-year cycle leave **any** imprint on global M ≥ 7 seismicity? Three independent tests in `cycle_fold.py` and `spectral.py`.
+
+Cycle boundaries are detected from the 13-month tapered Wolf smoothed monthly SILSO series and match the official SILSO dates to within smoothing-window accuracy (cycles 20–24 complete inside the 1965–2025 window — five full cycles; cycle 25 is still ongoing and excluded from the fold).
+
+### Phase fold (757 M ≥ 7 quakes across 5 complete cycles)
+
+![Cycle fold](figures/03_cycle_fold.png)
+
+For each quake, phase 0 = preceding cycle min, ~0.5 = solar max, 1 = next min. Counts per 0.1-wide bin range from 65 to 91 against an expected 75.7. Neither test against uniform finds anything:
+
+| Test | Statistic | p |
+|---|---|---|
+| Chi-squared (10 bins vs uniform) | χ² = 10.75 | 0.293 |
+| Rayleigh (uniformity on circle) | z = 0.27, R̄ = 0.019 | 0.766 |
+
+The mean phase is 0.21 — nominally toward the ascending phase but the R̄ is small enough that this is consistent with a flat distribution.
+
+### High vs low sunspot half
+
+Split the 61 years on the median yearly mean sunspot number (80.8). M ≥ 7 rate in the high-SSN years is 13.68/yr; in the low-SSN years it's 13.90/yr. Ratio 0.984×, p = 0.836.
+
+### Ascending vs descending phase
+
+Aggregating across all five complete cycles: 14.13 M ≥ 7/yr in the rising phase (min → max, 21.6 years total), 13.56/yr in the falling phase (max → next min, 33.3 years total). Ratio 1.04×, p = 0.58.
+
+### Periodogram — the most diagnostic test
+
+![Periodogram](figures/04_periodogram.png)
+
+Yearly periodograms of three series, each normalized to its own max:
+
+- **Sunspot number** (orange triangles): a textbook peak at ~10–11 years. Sanity check ✓
+- **G3+ storm days** (blue squares): peaks in the same 9–13y band with very high power. Positive control — the cycle drives geomagnetic activity, as it should. ✓
+- **M ≥ 7 quakes** (red dots): no peak in the 9–13y band. The 9–13y band peak power equals the phase-randomized 95% null bound exactly (18.81 = 18.81), i.e. chance-level. The M ≥ 7 series is statistically indistinguishable from coloured noise at the solar-cycle frequency.
+
+This is the cleanest possible negative result: the same spectral test detects the 11-year cycle loud and clear in two space-weather series and finds nothing in M ≥ 7.
+
+### Coherence with sunspot number
+
+![Coherence](figures/05_coherence.png)
+
+Magnitude-squared coherence between yearly M ≥ 7 counts and yearly mean sunspot number, with a phase-randomized 95% null bound. In the 9–13y band the observed coherence is 0.073 against a null bound of 0.43 — flat. The series do not share variance at the solar-cycle frequency.
+
 ## Caveats
 
 What this analysis does **not** test, and where claims of weak correlation in the literature still live:
@@ -146,7 +192,9 @@ cd sw-eq-correlation
 pip install -r requirements.txt
 python analyze.py            # yearly + detrended + lag + daily-window tests
 python lag_test.py           # Sun-side propagation-aware lag test
-python make_figures.py       # regenerates figures/*.png
+python cycle_fold.py         # 11y cycle phase fold + half/phase splits
+python spectral.py           # periodogram + coherence with surrogate nulls
+python make_figures.py       # regenerates figures/01 and figures/02
 ```
 
 All scripts default to `../spaceweather/spaceweather.sqlite` and `../earthquakes/quakes.sqlite`. Override with `--sw-db PATH --eq-db PATH` if you cloned somewhere else.
